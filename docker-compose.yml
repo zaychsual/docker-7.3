@@ -1,0 +1,69 @@
+version: "3.7"
+services:
+  redis7.3:
+    image: redis:latest
+    ports:
+      - 7370:6379
+    container_name: redis7.3
+    networks:
+      - php7.3
+
+  enesis:
+    build:
+      args:
+        user: zaynd
+        uid: 1000
+      context: ./
+      dockerfile: Dockerfile
+    image: php7.3
+    container_name: enesis
+    restart: unless-stopped
+    working_dir: /var/www/
+    volumes:
+      - ./enesis-integrated:/var/www
+    networks:
+      - php7.3
+
+  enesis-server:
+    image: nginx:alpine
+    container_name: enesis-server
+    restart: unless-stopped
+    ports:
+      - 7371:80
+    volumes:
+      - ./enesis-integrated:/var/www
+      - ./config/enesis-server:/etc/nginx/conf.d/
+    networks:
+      - php7.3
+
+  loopsy:
+    build:
+      args:
+        user: zaynd
+        uid: 1000
+      context: ./
+      dockerfile: Dockerfile
+    image: php7.3
+    container_name: loopsy
+    restart: unless-stopped
+    working_dir: /var/www/
+    volumes:
+      - ./loopsid:/var/www
+    networks:
+      - php7.3
+
+  loops-server:
+    image: nginx:alpine
+    container_name: loops-server
+    restart: unless-stopped
+    ports:
+      - 7372:80
+    volumes:
+      - ./loopsid:/var/www
+      - ./config/nginx-loopsy:/etc/nginx/conf.d/
+    networks:
+      - php7.3
+
+networks:
+  php7.3:
+    driver: bridge
